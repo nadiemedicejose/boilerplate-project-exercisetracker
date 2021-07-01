@@ -10,8 +10,8 @@ Build a full stack JavaScript app that is functionally similar to this: https://
 When you are done, make sure a working demo of your project is hosted somewhere public. Then submit the URL to it in the `Solution Link` field. Optionally, also submit a link to your projects source code in the `GitHub Link` field.
 
 ## User Stories
-* [ ] You should provide your own project, not the example URL.
-* [ ] You can `POST` to `/api/users` with form data `username` to create a new user. The returned response will be an object with `username` and `_id` properties.
+* [x] You should provide your own project, not the example URL.
+* [x] You can `POST` to `/api/users` with form data `username` to create a new user. The returned response will be an object with `username` and `_id` properties.
 * [ ] You can make a `GET` request to `/api/users` to get an array of all users. Each element in the array is an object containing a user's `username` and `_id`.
 * [ ] You can `POST` to `/api/users/:_id/exercises` with form data `description`, `duration`, and optionally `date`. If no date is supplied, the current date will be used. The response returned will be the user object with the exercise fields added.
 * [ ] You can make a `GET` request to `/api/users/:_id/logs` to retrieve a full exercise log of any user. The returned response will be the user object with a `log` array of all the exercises added. Each log item has the `description`, `duration`, and `date` properties.
