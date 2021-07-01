@@ -19,7 +19,12 @@ mongoose.connect(db_uri, { useNewUrlParser: true, useUnifiedTopology: true })
 // Schema and model
 const { Schema } = mongoose
 const userSchema = new Schema({
-  username: {type: String, required: true}
+  username: {type: String, required: true},
+  log: [{
+    description: {type: String, required: true},
+    duration: {type: Number, required: true},
+    date: String
+  }]
 })
 
 const User = mongoose.model('User', userSchema)
@@ -44,6 +49,51 @@ app.post('/api/users', (req, res) => {
       })
     }
   })
+})
+
+/**
+ * TODO: POST to /api/users/:_id/exercises with form data description, duration, and optionally date. If no date is supplied, the current date will be used.
+ * JSON response: user object with the exercise fields added.
+ */
+app.post('/api/users/:_id/exercises', (req, res) => {
+  const _id = req.params._id
+  let { description, duration, date } = req.body
+
+  if ( !description || !duration ) {
+    return res.json(`Path ${description?'duration':'description'} is required.`)
+  }
+
+  if ( !date ) date = new Date().toDateString()
+  else {
+    if (new Date(date).toDateString() == 'Invalid date') {
+      return res.json(`Cast to date failed for value ${date} at path date`)
+    }
+
+    date = new Date(date).toDateString()
+  }
+
+  if (duration.match(/[^0-9]/g)) {
+    return res.json(`Cast to Number failed for value ${duration} at path duration`)
+  }
+  duration = parseInt(duration)
+
+  User.findByIdAndUpdate(_id, {
+    description: description,
+    duration: duration,
+    date: date
+  }, (err, user) => {
+    if (err) return console.log(err)
+    else {
+      return res.json({
+        _id,
+        username: user.username,
+        description,
+        duration,
+        date
+      })
+    }
+  })
+
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
