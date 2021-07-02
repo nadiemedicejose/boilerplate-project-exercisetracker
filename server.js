@@ -73,47 +73,51 @@ app.get('/api/users', (req, res) => {
 })
 
 /**
- * TODO: POST to /api/users/:_id/exercises with form data description, duration, and optionally date. If no date is supplied, the current date will be used.
+ * TODO: POST to /api/users/:_id/exercises with form data description, duration, and optionally date.
+ * If no date is supplied, the current date will be used.
  * JSON response: user object with the exercise fields added.
  */
-app.post('/api/users/:_id/exercises', (req, res) => {
-  const _id = req.params._id
-  let { description, duration, date } = req.body
+ app.post('/api/users/:_id/exercises', (req, res) => {
+  async function addExercise() {
+    try {
+      const id = req.params._id
+      let { description, duration, date } = req.body
 
-  if ( !description || !duration ) {
-    return res.json(`Path ${description?'duration':'description'} is required.`)
-  }
+      /**
+       * TODO: Change null to undefined
+       * (Defaults do **not** run on null, '', or value other than undefined)
+       * TODO: else, verify date format
+       */
+      if ( !date ) {
+        date = undefined
+      } else if ( !date.match(/^[0-9]{4}[-/][0-9]{2}[-/][0-9]{2}$/) ) {
+        throw new Error('Invalid date format')
+      }
 
-  if ( !date ) date = new Date().toDateString()
-  else {
-    if (new Date(date).toDateString() == 'Invalid date') {
-      return res.json(`Cast to date failed for value ${date} at path date`)
-    }
-
-    date = new Date(date).toDateString()
-  }
-
-  if (duration.match(/[^0-9]/g)) {
-    return res.json(`Cast to Number failed for value ${duration} at path duration`)
-  }
-  duration = parseInt(duration)
-
-  User.findByIdAndUpdate(_id, {
-    description: description,
-    duration: duration,
-    date: date
-  }, (err, user) => {
-    if (err) return console.log(err)
-    else {
-      return res.json({
-        _id,
-        username: user.username,
-        description,
-        duration,
-        date
+      User.findByIdAndUpdate(id, {
+        description: description,
+        duration: duration,
+        date: date
+      }, (err, usr) => {
+        if (err) console.log(err)
+        else {
+          return res.json({
+            _id: usr._id,
+            username: usr.username,
+            description: usr.description,
+            duration: usr.duration,
+            date: new Date(usr.date).toDateString()
+          })
+        }
       })
+
+    } catch (error) {
+      console.log(error)
+      return res.json({ error: error.message })
     }
-  })
+  }
+
+  addExercise()
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
