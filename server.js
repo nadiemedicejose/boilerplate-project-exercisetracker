@@ -30,7 +30,7 @@ const exerciseSchema = new Schema({
 });
 
 const User = mongoose.model('User', userSchema)
-const Exercise = mongoose.model('Excercise', exerciseSchema)
+const Exercise = mongoose.model('Exercise', exerciseSchema)
 
 /**
  * TODO: POST to /api/users with form data username to create a new user.
@@ -92,34 +92,40 @@ app.post('/api/users/:_id/exercises', (req, res) => {
       const id = req.params._id
       let { description, duration, date } = req.body
 
-      /**
-       * TODO: Change null to undefined
-       * (Defaults do **not** run on null, '', or value other than undefined)
-       * TODO: else, verify date format
-       */
+      // TODO: Change null to undefined
+      // (Defaults do **not** run on null, '', or value other than undefined)
+      // TODO: Else, verify date format
       if ( !date ) {
         date = undefined
       } else if ( !date.match(/^[0-9]{4}[-/][0-9]{2}[-/][0-9]{2}$/) ) {
         throw new Error('Invalid date format')
       }
 
-      User.findByIdAndUpdate(id, {
+      const findUser = await User.findById(id)
+      .exec()
+
+      if ( !findUser ) {
+        throw new Error('ID not found')
+      }
+
+      const exercise = await new Exercise({
         description: description,
         duration: duration,
         date: date
-      }, (err, usr) => {
-        if (err) console.log(err)
-        else {
-          return res.json({
-            _id: usr._id,
-            username: usr.username,
-            description: usr.description,
-            duration: usr.duration,
-            date: new Date(usr.date).toDateString()
-          })
-        }
       })
 
+      findUser.log.push(exercise._id)
+      
+      const saveUser = await findUser.save()
+      const saveExe = await exercise.save()
+
+      return res.json({
+        _id: findUser._id,
+        username: findUser.username,
+        description: saveExe.description,
+        duration: saveExe.duration,
+        date: new Date(saveExe.date).toDateString()
+      });
     } catch (error) {
       console.log(error)
       return res.json({ error: error.message })
