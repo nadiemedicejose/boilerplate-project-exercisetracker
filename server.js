@@ -20,14 +20,17 @@ mongoose.connect(db_uri, { useNewUrlParser: true, useUnifiedTopology: true })
 const { Schema } = mongoose
 const userSchema = new Schema({
   username: {type: String, required: true},
-  log: [{
-    description: {type: String, required: true},
-    duration: {type: Number, required: true},
-    date: String
-  }]
+  log: [{type: Schema.Types.ObjectId, ref: 'Exercise'}]
 })
 
+const exerciseSchema = new Schema({
+  description: {type: String, required: true},
+  duration: {type: Number, required: true},
+  date: {type: Date, default: Date.now}
+});
+
 const User = mongoose.model('User', userSchema)
+const Exercise = mongoose.model('Excercise', exerciseSchema)
 
 /**
  * TODO: POST to /api/users with form data username to create a new user.
