@@ -34,21 +34,27 @@ const User = mongoose.model('User', userSchema)
  * JSON response: username and _id properties.
  */
 app.post('/api/users', (req, res) => {
-  const username = req.body.username
+  async function createUser() {
+    try {
+      const username = req.body.username
 
-  let user = new User({
-    username: username
-  })
-
-  user.save((err, usr) => {
-    if (err) return console.error(err)
-    else {
-      res.json({
-        username: usr.username,
-        _id: usr._id
+      const user = new User({
+        username: username
       })
+
+      const saveUser = await user.save()
+
+      return res.json({
+        _id: saveUser._id,
+        username: saveUser.username
+      });
+    } catch (error) {
+      console.log(error)
+      return res.json({error: error.message})
     }
-  })
+  }
+
+  createUser()
 })
 
 /**
