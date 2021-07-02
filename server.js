@@ -77,7 +77,7 @@ app.get('/api/users', (req, res) => {
  * If no date is supplied, the current date will be used.
  * JSON response: user object with the exercise fields added.
  */
- app.post('/api/users/:_id/exercises', (req, res) => {
+app.post('/api/users/:_id/exercises', (req, res) => {
   async function addExercise() {
     try {
       const id = req.params._id
@@ -118,6 +118,64 @@ app.get('/api/users', (req, res) => {
   }
 
   addExercise()
+})
+
+/**
+ * TODO: GET request to /api/users/:_id/logs to retrieve a full exercise log of any user.
+ * JSON response: user object with a log array of all the exercises added.
+ * Each log item has the description, duration, and date properties.
+ */
+app.get('/api/users/:_id/logs', (req, res) => {
+  async function getLogs() {
+    try {
+      const id = req.params._id
+      const { from, to, limit } = req.query
+      const fromDate = new Date(from)
+      const toDate = new Date(to)
+
+      const user = await User.findById(id)
+      .populate({
+        path: 'log',
+        match: from && to ? {date: {$gte: fromDate, $lte: toDate}}
+        : from ? {date: {$gte: fromDate}}
+        : to ? {date: {$lte: toDate}}
+        : null,
+        options: {limit: limit ? limit : null}
+      })
+      .exec()
+
+      const result = {
+        _id: user._id,
+        username: user.username
+      }
+
+      if (from && to) {     
+        result.from = fromDate.toDateString()
+        result.to = toDate.toDateString()
+      } else if (from) {
+        result.from = fromDate.toDateString()
+      } else if (to) {
+        result.to = toDate.toDateString()
+      }
+
+      result.count = user.log.length
+
+      result.log = user.log.map(i => {
+        return {
+          description: i.description,
+          duration: i.duration,
+          date: i.date.toDateString()
+        }
+      })
+
+      return res.json(result)
+    } catch (error) {
+      console.log(error)
+      return res.json({error: error.message})
+    }
+  }
+
+  getLogs()
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
