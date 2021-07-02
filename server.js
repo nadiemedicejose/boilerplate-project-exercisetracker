@@ -52,6 +52,27 @@ app.post('/api/users', (req, res) => {
 })
 
 /**
+ * TODO: GET request to /api/users to get an array of all users.
+ * Each element in the array is an object containing a user's username and _id.
+ */
+app.get('/api/users', (req, res) => {
+  async function getAllUsers() {
+    try {
+      const allUsers = await User.find({})
+      .select({log: 0, __v: 0})
+      .exec()
+
+      return res.json(allUsers)
+    } catch (error) {
+      console.log(error)
+      return res.json({error: error.message})
+    }
+  }
+
+  getAllUsers()
+})
+
+/**
  * TODO: POST to /api/users/:_id/exercises with form data description, duration, and optionally date. If no date is supplied, the current date will be used.
  * JSON response: user object with the exercise fields added.
  */
@@ -93,7 +114,6 @@ app.post('/api/users/:_id/exercises', (req, res) => {
       })
     }
   })
-
 })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
